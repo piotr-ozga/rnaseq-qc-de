@@ -3,6 +3,7 @@
 nextflow.enable.dsl=2
 
 include { INPUT_HANDLER } from './subworkflows/local/input_handler/main.nf' 
+include { QC_AND_TRIMMING } from './subworkflows/local/qc_and_trimming/main.nf' 
 
 workflow {
     // --- PARAMETER VALIDATION --- 
@@ -43,4 +44,5 @@ workflow {
         }
 
     INPUT_HANDLER(ch_samples)
+    QC_AND_TRIMMING(INPUT_HANDLER.out.reads)
 }
