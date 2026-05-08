@@ -1,0 +1,35 @@
+nextflow_process {
+
+    name "Test Process SRA_DOWNLOAD"
+    script "modules/local/sratools/main.nf"
+    process "SRA_DOWNLOAD"
+
+    test("[PE] Should download and convert SRA to FASTQ") {
+        when{
+            process {
+                """
+                input[0] = [ [ id:"test_sample", single_end: false ] , "SRR11140744" ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            assert  process.out.reads[0][0].id == "test_sample"
+            
+            def reads = process.out.reads[0][1]
+            assert reads instanceof List
+            assert reads.size() >= 2
+
+            reads.each { fastq ->
+                assert fastq.endsWith(".fastq.gz")
+                assert path(fastq).exists()
+                assert path(fastq).size() > 0
+            }
+
+            assert process.out.version[0][1] == 'fasterq-dump'
+            assert process.out.version[0][2] =~ /\d+\.\d+\.\d+/
+        }
+    }
+}

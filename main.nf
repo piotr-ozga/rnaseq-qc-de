@@ -1,0 +1,46 @@
+#!/usr/bin/env nextflow
+
+nextflow.enable.dsl=2
+
+include { INPUT_HANDLER } from './subworkflows/local/input_handler/main.nf' 
+
+workflow {
+    // --- PARAMETER VALIDATION --- 
+    def mandatory_files = [
+        "Samplesheet": params.samplesheet,
+    ]
+
+    mandatory_files.each { name, path ->
+        if (!path) {
+            error "[ERROR]: ${name} is not defined. Please use --${name.toLowerCase().replace(' ', '_')} <path>"
+        }
+        if (!file(path).exists()) {
+            error "[ERROR]: ${name} file not found: ${path}"
+        }
+    }
+
+    // --- Pipeline summary ---
+    log.info """
+        ================================================
+        R N A S E Q - Q C - D E  P I P E L I N E
+        ================================================
+        outdir          : ${params.outdir}
+        samplesheet     : ${params.samplesheet}
+        ================================================
+        """.stripIndent()
+
+    // --- INPUT CHANNEL ---
+    ch_samples = channel
+        .fromPath(params.samplesheet)
+        .splitCsv(header: true, sep: ',')
+        .map { row ->
+            def meta = [ id: row.sample ]
+            meta.single_end = row.read1 && !row.read2 ? true : false
+
+            def r1 = row.read1 ? file(row.read1) : null
+            def r2 = row.read2 ? file(row.read2) : null
+            [ meta, row.srr, r1, r2 ]
+        }
+
+    INPUT_HANDLER(ch_samples)
+}
