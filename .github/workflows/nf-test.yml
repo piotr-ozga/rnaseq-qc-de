@@ -1,0 +1,69 @@
+name: Run nf-test
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+    
+# Management of concurrent runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-tests:
+    name: Detect Changed Tests
+    runs-on: ubuntu-latest
+    outputs:
+      # This output will be JSON array of strings (paths to test files)
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+      
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v47.0.6
+
+      - name: Determine tests to run
+        id: set-matrix
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }} 
+        run: bash .github/scripts/detect_tests.sh
+  
+  run-tests:
+    name: Test ${{ matrix.test_file }}
+    needs: detect-tests
+    # Only run this job if the matrix is not empty
+    if: ${{ needs.detect-tests.outputs.matrix != '[]' && needs.detect-tests.outputs.matrix != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Convert the JSON string from detect-test back into a matrix object
+        test_file: ${{ fromJSON(needs.detect-tests.outputs.matrix) }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Install Nextflow
+        uses: nf-core/setup-nextflow@v3.0.0 
+        with:
+          version: 25.10.4
+      
+      - name: Install nf-test
+        run: |
+          wget -qO- https://code.askimed.com/install/nf-test | bash
+          sudo mv nf-test /usr/local/bin/
+
+      - name: Run nf-test
+        run: |
+          nextflow secrets set NCBI_API_KEY ${NCBI_API_KEY}
+          nf-test test ${{ matrix.test_file }} --profile docker --verbose
+        env:
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
