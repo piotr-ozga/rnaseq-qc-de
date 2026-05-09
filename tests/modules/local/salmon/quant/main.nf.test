@@ -1,0 +1,81 @@
+nextflow_process {
+
+    name "Test Process SALMON_QUANT"
+    script "modules/local/salmon/quant/main.nf"
+    process "SALMON_QUANT"
+
+    test("[PE] Should quantify paired-end files") {
+        setup {
+            run("SALMON_INDEX") {
+                script "${projectDir}/modules/local/salmon/index/main.nf"
+                process {
+                    """
+                    input[0] = params.genome_fasta
+                    input[1] = params.transcriptome_fasta
+                    """
+                }
+            }
+        }
+        when{
+            process {
+                """
+                input[0] = [
+                    [ id: "test_pe", single_end: false ],
+                    [
+                        file("${projectDir}/tests/data/yeast/trimgalore_out/SRR6357070_1_val_1.fq.gz", checkIfExists: true),
+                        file("${projectDir}/tests/data/yeast/trimgalore_out/SRR6357070_2_val_2.fq.gz", checkIfExists: true)
+                    ]
+                ]
+                input[1] = SALMON_INDEX.out.index
+                input[2] = params.gtf
+                input[3] = params.salmon_lib_type
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def results_dir = process.out.results[0][1]
+            assert new File("${results_dir}/quant.sf").exists()
+            assert new File("${results_dir}/quant.genes.sf").exists()
+            
+            assert process.out.version[0][1] == 'salmon'
+            assert process.out.version[0][2] =~ /\d+\.\d+\.\d+/
+        }
+    }
+
+    test("[SE] Should quantify single-end files") {
+        setup {
+            run("SALMON_INDEX") {
+                script "${projectDir}/modules/local/salmon/index/main.nf"
+                process {
+                    """
+                    input[0] = params.genome_fasta
+                    input[1] = params.transcriptome_fasta
+                    """
+                }
+            }
+        }
+        when{
+            process {
+                """
+                input[0] = [
+                    [ id: "test_se", single_end: true ],
+                    file("${projectDir}/tests/data/yeast/trimgalore_out/SRR6357073_1_trimmed.fq.gz", checkIfExists: true)
+                ]
+                input[1] = SALMON_INDEX.out.index
+                input[2] = params.gtf
+                input[3] = params.salmon_lib_type
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def results_dir = process.out.results[0][1]
+            assert new File("${results_dir}/quant.sf").exists()
+        }
+    }
+}

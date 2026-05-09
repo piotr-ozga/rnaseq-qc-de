@@ -1,0 +1,27 @@
+nextflow_process {
+
+    name "Test Process SALMON_INDEX"
+    script "modules/local/salmon/index/main.nf"
+    process "SALMON_INDEX"
+
+    test("Should build a Salmon index from genome and transcriptome") {
+        when{
+            process {
+                """
+                input[0] = params.genome_fasta
+                input[1] = params.transcriptome_fasta
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            assert process.out.index != null
+            def index_path = process.out.index[0]
+            
+            assert process.out.version[0][1] == 'salmon'
+            assert process.out.version[0][2] =~ /\d+\.\d+\.\d+/
+        }
+    }
+}
