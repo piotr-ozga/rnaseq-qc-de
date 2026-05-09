@@ -1,0 +1,14 @@
+# Nextflow
+.nextflow/
+.nextflow.log*
+work/
+results/
+
+# nf-test
+.nf-test/
+.nf-test.log
+tests/results/
+**/.nf-test.log
+
+# Conda
+conda_cache/

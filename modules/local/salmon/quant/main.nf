@@ -15,6 +15,7 @@ process SALMON_QUANT {
 
     output:
     tuple val(meta), path("${meta.id}"),     emit: results
+    path("${meta.id}"),                      emit: mqc, topic: multiqc_files
     tuple val("${task.process}"), val('salmon'), eval('salmon --version | grep -Eo "[0-9]+(\\.[0-9]+)+"'), emit: version, topic: versions
 
     script:

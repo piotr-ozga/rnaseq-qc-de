@@ -14,6 +14,7 @@ process TRIMGALORE {
     output:
     tuple val(meta), path("*.fq.gz"),         emit: reads
     tuple val(meta), path("*report.txt"),     emit: log
+    path("*report.txt"),                      emit: mqc, topic: multiqc_files
     tuple val("${task.process}"), val('trim_galore'), eval('trim_galore --version | grep -Eo "[0-9]+(\\.[0-9]+)+"'), emit: version, topic: versions
 
     script:
