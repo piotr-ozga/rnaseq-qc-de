@@ -1,0 +1,56 @@
+nextflow_process {
+
+    name "Test Process TRIMGALORE"
+    script "modules/local/trimgalore/main.nf"
+    process "TRIMGALORE"
+
+    // Test for paired-end data
+    test("[PE] Should trim paired-end reads and outpt gzipped fastq") {
+
+        when{
+            process {
+                """
+                def data_dir = "\${projectDir}/tests/data/yeast/reads"
+                input[0] = [
+                    [ id: "WT_REP1", single_end: false ],
+                    [
+                        file("\${data_dir}/SRR6357070_1.fastq.gz", checkIfExists: true),
+                        file("\${data_dir}/SRR6357070_2.fastq.gz", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.reads[0][1].size() == 2
+            assert process.out.reads[0][1].every { it.endsWith(".fq.gz") }
+            assert process.out.version[0][1] == 'trim_galore'
+        }
+    }
+
+    // // Test for single-end data
+    test("[SE] Should trim single-end reads and outpt gzipped fastq") {
+
+        when{
+            process {
+                """
+                def data_dir = "\${projectDir}/tests/data/yeast/reads"
+                input[0] = [
+                    [ id: "RAP1_UNINDUCED", single_end: true ],
+                    file("\${data_dir}/SRR6357073_1.fastq.gz", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert process.out.reads[0][1].endsWith(".fq.gz")
+            assert process.out.log[0][1].contains("SRR6357073_1.fastq.gz_trimming_report.txt")
+        }
+    }
+
+
+}
