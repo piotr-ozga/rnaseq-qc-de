@@ -1,0 +1,32 @@
+nextflow_pipeline {
+
+    name "Test Workflow: main.nf"
+    script "main.nf"
+    config "tests/nextflow.config"
+
+    test("RNA-seq - main workflow integration test") {
+        when {
+            params {
+                outdir          = "${projectDir}/tests/results/main/"
+                ref_level       = 'control'
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert file("${params.outdir}/reports/multiqc/multiqc_report.html").exists()
+            
+            def getDir = { dirPath ->
+                def dir = file(dirPath)
+                return dir.exists() ? dir.list().sort() : []
+            }
+
+            assert snapshot(
+                getDir("${params.outdir}/fastqc/"),
+                getDir("${params.outdir}/trimgalore/logs"),
+                getDir("${params.outdir}/salmon/"),
+                getDir("${params.outdir}/dea")
+            ).match("full_output_structure")
+        }
+    }
+}

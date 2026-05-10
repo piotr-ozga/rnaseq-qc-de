@@ -1,0 +1,31 @@
+{
+    "full_output_structure": {
+        "content": [
+            [
+                "raw",
+                "trimmed"
+            ],
+            [
+                "SRR6357070_1.fastq.gz_trimming_report.txt",
+                "SRR6357070_2.fastq.gz_trimming_report.txt",
+                "SRR6357073_1.fastq.gz_trimming_report.txt",
+                "SRR6357076_1.fastq.gz_trimming_report.txt",
+                "SRR6357076_2.fastq.gz_trimming_report.txt"
+            ],
+            [
+                "SRR6357070",
+                "SRR6357073",
+                "SRR6357076",
+                "index"
+            ],
+            [
+                "deseq2"
+            ]
+        ],
+        "timestamp": "2026-05-10T13:30:44.701049582",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.0"
+        }
+    }
+}
