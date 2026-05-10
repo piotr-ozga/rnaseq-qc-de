@@ -1,0 +1,78 @@
+nextflow_workflow {
+
+    name "Test Subworkflow INPUT_HANDLER"
+    script "subworkflows/local/input_handler/main.nf"
+    workflow "INPUT_HANDLER"
+
+    test("[STUB] Should correctly mix local and SRA samples") {
+        // Tests the branching and merging logic of INPUT_HANDLER
+        // - LOCAL_SAMPLE goes through ch_branched.local
+        // - SRA_SAMPLE goes through SRA_DOWNLOAD
+        // - both are merged via .mix() into a single ch_reads channel
+        //
+        // Test uses stubs to avoid real network calls. It is allowed since 
+        // download correctness is covered by the SRA_DOWNLOAD unit test, and 
+        // it tests data flow through the subworkflow.
+
+        setup {
+            def test_csv = file("${workDir}/test_samples.csv")
+            test_csv.text = 
+            """
+            sample,condition,srr,read1,read2
+            LOCAL_SAMPLE,control,,tests/data/yeast/reads/SRR6357070_1.fastq.gz,
+            SRA_SAMPLE,treated,SRR11140744,,
+            """.stripIndent().trim()
+        }
+
+        when{
+            workflow {
+                """
+                    input[0] = "${workDir}/test_samples.csv"
+                """
+            }
+            options "-stub"
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.out.reads.size() == 2
+            
+            // Verify that both IDs are present in the output
+            def sample_ids = workflow.out.reads.collect{ it[0].id }
+            assert sample_ids.contains("LOCAL_SAMPLE")
+            assert sample_ids.contains("SRA_SAMPLE")
+
+            // Check the structure
+            workflow.out.reads.each { meta, reads ->
+                assert meta.condition != null
+                assert reads instanceof List
+            }
+        }
+    }
+
+    test("Should throw an error when 'condition' column is missing") {
+
+        setup {
+            def broken_csv = file("${workDir}/broken_samples.csv")
+            broken_csv.text = 
+            """
+            sample,condition,srr,read1,read2
+            BROKEN_SAMPLE,,,,
+            """.stripIndent().trim()
+        }
+
+        when{
+            workflow {
+                """
+                input[0] = "${workDir}/broken_samples.csv"
+                """
+            }
+        }
+
+        then {
+            assert workflow.failed
+            //Check if it threw the defined error message
+            assert workflow.stdout.contains("[SAMPLESHEET ERROR]: Sample 'BROKEN_SAMPLE' must provide the 'condition' column value.")
+        }
+    }
+}

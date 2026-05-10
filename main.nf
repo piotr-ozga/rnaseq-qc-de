@@ -6,14 +6,14 @@ include { INPUT_HANDLER } from './subworkflows/local/input_handler/main.nf'
 include { QC_AND_TRIMMING } from './subworkflows/local/qc_and_trimming/main.nf' 
 include { SALMON_ALIGN } from './subworkflows/local/salmon_align/main.nf'
 include { REPORTING } from './subworkflows/local/reporting/main.nf' 
-include { RNASEQ_DEA } from './subworkflows/local/rnaseq_dea/main.nf'
+include { RNASEQ_DEA } from './subworkflows/local/rnaseq_dea/main.nf' 
 
 workflow {
     // --- PARAMETER VALIDATION --- 
     def mandatory_files = [
         "Samplesheet": params.samplesheet,
         "Genome FASTA": params.genome_fasta,
-        "GTF Annotation": params.gtf,
+        "GTF": params.gtf,
         "Transcriptome FASTA": params.transcriptome_fasta
     ]
 
@@ -23,6 +23,16 @@ workflow {
         }
         if (!file(path).exists()) {
             error "[ERROR]: ${name} file not found: ${path}"
+        }
+    }
+
+    def mandatory_params = [
+        "Ref Level": params.ref_level
+    ]
+
+    mandatory_params.each { name, value ->
+        if (!value) {
+            error "[ERROR]: ${name} is not defined. Please use --${name.toLowerCase().replace(' ', '_')} <value>"
         }
     }
 
@@ -36,20 +46,7 @@ workflow {
         ================================================
         """.stripIndent()
 
-    // --- INPUT CHANNEL ---
-    ch_samples = channel
-        .fromPath(params.samplesheet)
-        .splitCsv(header: true, sep: ',')
-        .map { row ->
-            def meta = [ id: row.sample ]
-            meta.single_end = row.read1 && !row.read2 ? true : false
-
-            def r1 = row.read1 ? file(row.read1) : null
-            def r2 = row.read2 ? file(row.read2) : null
-            [ meta, row.srr, r1, r2 ]
-        }
-
-    INPUT_HANDLER(ch_samples)
+    INPUT_HANDLER(params.samplesheet)
     QC_AND_TRIMMING(INPUT_HANDLER.out.reads)
     SALMON_ALIGN(
         QC_AND_TRIMMING.out.trimmed_reads,
