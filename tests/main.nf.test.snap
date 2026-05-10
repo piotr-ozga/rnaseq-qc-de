@@ -19,10 +19,11 @@
                 "index"
             ],
             [
+                "annotation",
                 "deseq2"
             ]
         ],
-        "timestamp": "2026-05-10T13:30:44.701049582",
+        "timestamp": "2026-05-11T00:48:58.237129137",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"

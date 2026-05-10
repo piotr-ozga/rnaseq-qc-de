@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - conda-forge::r-base=4.5.1
+  - bioconda::bioconductor-rtracklayer=1.70.1
+  - conda-forge::r-dplyr=1.2.1
+  - conda-forge::r-readr=2.1.5

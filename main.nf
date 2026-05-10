@@ -61,7 +61,8 @@ workflow {
             .map { meta, dir -> dir }
             .collect(),
         file(params.samplesheet),
-        params.ref_level
+        params.ref_level,
+        params.gtf
     )
 
     REPORTING()
