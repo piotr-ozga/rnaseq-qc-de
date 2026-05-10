@@ -6,6 +6,7 @@ include { INPUT_HANDLER } from './subworkflows/local/input_handler/main.nf'
 include { QC_AND_TRIMMING } from './subworkflows/local/qc_and_trimming/main.nf' 
 include { SALMON_ALIGN } from './subworkflows/local/salmon_align/main.nf'
 include { REPORTING } from './subworkflows/local/reporting/main.nf' 
+include { RNASEQ_DEA } from './subworkflows/local/rnaseq_dea/main.nf'
 
 workflow {
     // --- PARAMETER VALIDATION --- 
@@ -56,6 +57,14 @@ workflow {
         file(params.transcriptome_fasta),
         file(params.gtf),
         params.salmon_lib_type
+    )
+
+    RNASEQ_DEA(
+        SALMON_ALIGN.out.results
+            .map { meta, dir -> dir }
+            .collect(),
+        file(params.samplesheet),
+        params.ref_level
     )
 
     REPORTING()

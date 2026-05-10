@@ -1,4 +1,4 @@
-sample,srr,read1,read2
-SRR6357070,SRR6357070,tests/data/yeast/reads/SRR6357070_1.fastq.gz,tests/data/yeast/reads/SRR6357070_2.fastq.gz
-SRR6357073,SRR6357073,tests/data/yeast/reads/SRR6357073_1.fastq.gz,
-SRR6357076,SRR6357076,tests/data/yeast/reads/SRR6357076_1.fastq.gz,tests/data/yeast/reads/SRR6357076_2.fastq.gz
+sample,condition,srr,read1,read2
+SRR6357070,control,SRR6357070,tests/data/yeast/reads/SRR6357070_1.fastq.gz,tests/data/yeast/reads/SRR6357070_2.fastq.gz
+SRR6357073,control,SRR6357073,tests/data/yeast/reads/SRR6357073_1.fastq.gz,
+SRR6357076,treatment,SRR6357076,tests/data/yeast/reads/SRR6357076_1.fastq.gz,tests/data/yeast/reads/SRR6357076_2.fastq.gz
