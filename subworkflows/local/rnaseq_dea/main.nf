@@ -1,5 +1,6 @@
 include { DESEQ2_ANALYSIS } from '../../../modules/local/deseq2/main.nf'
 include { ANNOTATE_RESULTS } from '../../../modules/local/annotation/main.nf'
+include { VISUALIZE_DEA } from '../../../modules/local/visualization/main.nf'
 
 workflow RNASEQ_DEA {
     take:
@@ -7,6 +8,7 @@ workflow RNASEQ_DEA {
     samplesheet
     reference_level
     gtf
+    ref_level
 
     main:
     // Perform DEA
@@ -16,11 +18,19 @@ workflow RNASEQ_DEA {
         DESEQ2_ANALYSIS.out.results_tsv,
         gtf
     )
+    // Visualization
+    VISUALIZE_DEA(
+        ANNOTATE_RESULTS.out.annotated_tsv,
+        DESEQ2_ANALYSIS.out.vst_rds,
+        samplesheet,
+        ref_level
+    )
 
     emit:
     results_tsv        = DESEQ2_ANALYSIS.out.results_tsv
     dds_rds            = DESEQ2_ANALYSIS.out.dds_rds
     vst_rds            = DESEQ2_ANALYSIS.out.vst_rds
     annotated_tsv      = ANNOTATE_RESULTS.out.annotated_tsv
-    annotation_summary = ANNOTATE_RESULTS.out.summary_txt 
+    annotation_summary = ANNOTATE_RESULTS.out.summary_txt
+    plots              = VISUALIZE_DEA.out.plots
 }

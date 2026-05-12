@@ -62,7 +62,8 @@ workflow {
             .collect(),
         file(params.samplesheet),
         params.ref_level,
-        params.gtf
+        file(params.gtf),
+        params.ref_level
     )
 
     REPORTING()

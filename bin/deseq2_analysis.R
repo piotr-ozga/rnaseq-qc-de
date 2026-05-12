@@ -71,6 +71,10 @@ write_tsv(results_df, file.path(outdir, "results.tsv"))
 vst_nsub <- min(1000, nrow(dds))
 vst_vals <- vst(dds, blind = FALSE, nsub = vst_nsub)
 
+# Export VST normalized counts for PCA and Heatmap
+vst_df <- as.data.frame(assay(vst_vals)) |> tibble::rownames_to_column("gene_id")
+write_tsv(vst_df, file.path(outdir, "vst_counts.tsv"))
+
 # Save RDS for reporting
 saveRDS(dds, file.path(outdir, "dds.rds"))
 saveRDS(vst_vals, file.path(outdir, "vst.rds"))
