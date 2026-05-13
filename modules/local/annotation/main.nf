@@ -14,10 +14,10 @@ process ANNOTATE_RESULTS {
     output:
     path "results/results_annotated.tsv", emit: annotated_tsv
     path "results/annotation_summary.txt",     emit: summary_txt
-    tuple val("${task.process}"), val('r-base'), eval('R --version | grep -Eo "[0-9]+(\\.[0-9]+)+"'),                                                                emit: v_r,        topic: versions
+    tuple val("${task.process}"), val('r-base'), eval('R --version | grep -Eo "[0-9]+(\\.[0-9]+)+"'),                                                                emit: v_r,           topic: versions
     tuple val("${task.process}"), val('rtracklayer'), eval("Rscript -e 'cat(as.character(packageVersion(\"rtracklayer\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),     emit: v_rtracklayer, topic: versions
-    tuple val("${task.process}"), val('readr'), eval("Rscript -e 'cat(as.character(packageVersion(\"readr\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),                 emit: v_readr,   topic: versions
-    tuple val("${task.process}"), val('dplyr'), eval("Rscript -e 'cat(as.character(packageVersion(\"dplyr\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),                 emit: v_dplyr,    topic: versions
+    tuple val("${task.process}"), val('readr'), eval("Rscript -e 'cat(as.character(packageVersion(\"readr\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),                 emit: v_readr,       topic: versions
+    tuple val("${task.process}"), val('dplyr'), eval("Rscript -e 'cat(as.character(packageVersion(\"dplyr\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),                 emit: v_dplyr,       topic: versions
     
     script:
     """
