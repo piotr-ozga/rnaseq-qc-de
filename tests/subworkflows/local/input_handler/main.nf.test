@@ -4,7 +4,10 @@ nextflow_workflow {
     script "subworkflows/local/input_handler/main.nf"
     workflow "INPUT_HANDLER"
 
-    test("[STUB] Should correctly mix local and SRA samples") {
+    tag "subworkflows"
+    tag "input_handler"
+
+    test("[STUB] correctly mixes local and SRA samples") {
         // Tests the branching and merging logic of INPUT_HANDLER
         // - LOCAL_SAMPLE goes through ch_branched.local
         // - SRA_SAMPLE goes through SRA_DOWNLOAD
@@ -50,7 +53,7 @@ nextflow_workflow {
         }
     }
 
-    test("Should throw an error when 'condition' column is missing") {
+    test("throws an error when 'condition' column is missing") {
 
         setup {
             def broken_csv = file("${workDir}/broken_samples.csv")
@@ -71,7 +74,7 @@ nextflow_workflow {
 
         then {
             assert workflow.failed
-            //Check if it threw the defined error message
+            // Check if it threw the defined error message
             assert workflow.stdout.contains("[SAMPLESHEET ERROR]: Sample 'BROKEN_SAMPLE' must provide the 'condition' column value.")
         }
     }

@@ -4,7 +4,10 @@ nextflow_process {
     script "modules/local/sratools/main.nf"
     process "SRA_DOWNLOAD"
 
-    test("[PE] Should download and convert SRA to FASTQ") {
+    tag "modules"
+    tag "sra_download"
+
+    test("[PE] downloads and converts SRA to FASTQ") {
         when{
             process {
                 """
@@ -16,7 +19,7 @@ nextflow_process {
         then {
             assert process.success
 
-            assert  process.out.reads[0][0].id == "test_sample"
+            assert process.out.reads[0][0].id == "test_sample"
             
             def reads = process.out.reads[0][1]
             assert reads instanceof List
@@ -28,6 +31,7 @@ nextflow_process {
                 assert path(fastq).size() > 0
             }
 
+            // Check if software version is correctly collected
             assert process.out.version[0][1] == 'fasterq-dump'
             assert process.out.version[0][2] =~ /\d+\.\d+\.\d+/
         }

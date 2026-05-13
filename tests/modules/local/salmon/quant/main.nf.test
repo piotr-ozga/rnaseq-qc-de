@@ -4,10 +4,13 @@ nextflow_process {
     script "modules/local/salmon/quant/main.nf"
     process "SALMON_QUANT"
 
-    test("[PE] Should quantify paired-end files") {
+    tag "modules"
+    tag "salmon_quant"
+
+    test("[PE] quantifies paired-end files and validates output files") {
         setup {
             run("SALMON_INDEX") {
-                script "${projectDir}/modules/local/salmon/index/main.nf"
+                script "modules/local/salmon/index/main.nf"
                 process {
                     """
                     input[0] = params.genome_fasta
@@ -40,15 +43,16 @@ nextflow_process {
             assert new File("${results_dir}/quant.sf").exists()
             assert new File("${results_dir}/quant.genes.sf").exists()
             
+            // Check if software version is correctly collected
             assert process.out.version[0][1] == 'salmon'
             assert process.out.version[0][2] =~ /\d+\.\d+\.\d+/
         }
     }
 
-    test("[SE] Should quantify single-end files") {
+    test("[SE] quantifies single-end files and validates output files") {
         setup {
             run("SALMON_INDEX") {
-                script "${projectDir}/modules/local/salmon/index/main.nf"
+                script "modules/local/salmon/index/main.nf"
                 process {
                     """
                     input[0] = params.genome_fasta
