@@ -1,5 +1,7 @@
 include { MULTIQC } from '../../../modules/local/multiqc/main.nf'
 
+// Collects software versions and MultiQC input files from all upstream 
+// processes and generates a MultiQC HTML report.
 workflow REPORTING {
     main:
     
@@ -18,7 +20,7 @@ workflow REPORTING {
         ) { tool, ver -> " ${tool}:\n        version: '${ver}'\n"}
 
     // Collect all files from 'multiqc_files' topic
-    // Use .collect() to ensure MultiQC qaits for all upstream processes to finish
+    // Use .collect() to ensure MultiQC waits for all upstream processes to finish
     ch_multiqc_files = channel.topic('multiqc_files').collect()
 
     MULTIQC (

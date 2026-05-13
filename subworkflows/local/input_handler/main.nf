@@ -1,5 +1,9 @@
 include { SRA_DOWNLOAD } from '../../../modules/local/sratools/main.nf'
 
+// Reads a samplesheet CSV and routes samples to either local file loading
+// or SRA download, then merges both streams into a single reads channel.
+// Performs input validation.
+
 workflow INPUT_HANDLER {
     take:
     samplesheet
