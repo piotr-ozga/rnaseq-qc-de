@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Visualize DEA results
+# Visualize DEA results: Volcano Plot, PCA, and Heatmap
 
 suppressPackageStartupMessages({
     library(readr)
@@ -102,7 +102,7 @@ p_volcano <- ggplot(res_volc, aes(x = log2FoldChange, y = log_p_plot, color = si
 ggsave(file.path(outdir, "volcano_plot.pdf"), plot = p_volcano, width = 10, height = 8)
 
 # --- PCA Plot ---
-message("Generating PCA plot")
+message("Generating PCA plot...")
 
 pca <- plotPCA(vst_obj, intgroup = "condition") +
     geom_point(size = 5) +
@@ -161,3 +161,5 @@ if (nrow(heatmap_data) > 5) {
         filename                  = file.path(outdir, "heatmap.pdf")
     )
 }
+
+message("Visualization finished.")

@@ -46,6 +46,7 @@ workflow {
         ================================================
         """.stripIndent()
 
+    // --- Processes ---
     INPUT_HANDLER(params.samplesheet)
     QC_AND_TRIMMING(INPUT_HANDLER.out.reads)
     SALMON_ALIGN(
@@ -62,8 +63,7 @@ workflow {
             .collect(),
         file(params.samplesheet),
         params.ref_level,
-        file(params.gtf),
-        params.ref_level
+        file(params.gtf)
     )
 
     REPORTING()

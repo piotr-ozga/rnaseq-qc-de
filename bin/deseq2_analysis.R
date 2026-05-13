@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Simple differentila expression analysis using Dese2 + tximport
+# Differential Expression Analysis using DESeq2 + tximport
 
 suppressPackageStartupMessages({
     library(tximport)
@@ -26,10 +26,9 @@ col_data <- read_csv(samplesheet, show_col_types = FALSE) |>
     mutate(condition = relevel(condition, ref = reference_level))
 
 # --- File Validation ---
-# Check Salmon output to make surespecific 'quant.genes.sf' files exists
+# Check Salmon output to make sure specific 'quant.genes.sf' files exists
 # before feeding tximport, since Nextflow passes only directories
-
-message("Veryfing Salmon input files...")
+message("Verifying Salmon input files...")
 quant_files <- file.path(salmon_dir, col_data$sample, "quant.genes.sf")
 names(quant_files) <- col_data$sample
 
@@ -49,7 +48,7 @@ dds <- DESeqDataSetFromTximport(
     design = ~ condition
 )
 
-# Filtering: kep genes with total count >= 10 in at least 50% of samples
+# Filtering: keep genes with total count >= 10 in at least 50% of samples
 # Genes expressed only in one group (zero in others) are retained,
 # while globally lowly expressed genes are removed to improve dispersion
 keep <- rowSums(counts(dds) >= 10) >= (ncol(dds) / 2)
@@ -79,7 +78,8 @@ write_tsv(vst_df, file.path(outdir, "vst_counts.tsv"))
 saveRDS(dds, file.path(outdir, "dds.rds"))
 saveRDS(vst_vals, file.path(outdir, "vst.rds"))
 
-message("Differential expression analysis finished.")
 message(sprintf("Found %d significant DEGs (padj < 0.05).",
                 sum(results_df$padj < 0.05, na.rm = TRUE)
 ))
+
+message("Differential expression analysis finished.")

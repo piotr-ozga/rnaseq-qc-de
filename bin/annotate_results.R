@@ -23,7 +23,7 @@ results_df <- read_tsv(results_tsv, show_col_types = FALSE)
 # --- Parse GTF ---
 message("Parsing GTF: ", gtf_file)
 
-# Skip dozens of unsued columns to significantly reduce RAM usage
+# Skip dozens of unused columns to significantly reduce RAM usage
 gtf <- rtracklayer::import(
     gtf_file,
     feature.type = "gene",
@@ -125,4 +125,5 @@ summary_lines <- c(
 
 writeLines(summary_lines, file.path(outdir, "annotation_summary.txt"))
 message("Annotation summary written.")
-message("ANNOTATE_RESULTS finished.")
+
+message("Annotation finished.")
