@@ -10,18 +10,34 @@ workflow RNASEQ_DEA {
     samplesheet
     reference_level
     gtf
+    lfc_threshold
+    padj_threshold
+    heatmap_genes
+    volcano_labels
 
     main:
-    DESEQ2_ANALYSIS(salmon_dir, samplesheet, reference_level)
+    DESEQ2_ANALYSIS(
+        salmon_dir,
+        samplesheet,
+        reference_level,
+        lfc_threshold,
+        padj_threshold
+    )
+
     ANNOTATE_RESULTS(
         DESEQ2_ANALYSIS.out.results_tsv,
         gtf
     )
+
     VISUALIZE_DEA(
         ANNOTATE_RESULTS.out.annotated_tsv,
         DESEQ2_ANALYSIS.out.vst_rds,
         samplesheet,
-        reference_level
+        reference_level,
+        lfc_threshold,
+        padj_threshold,
+        heatmap_genes,
+        volcano_labels
     )
 
     emit:

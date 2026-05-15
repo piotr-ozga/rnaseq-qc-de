@@ -20,7 +20,11 @@ annotated_tsv   <- args[1]
 vst_rds         <- args[2]
 samplesheet     <- args[3]
 ref_level       <- args[4]
-outdir          <- args[5]
+padj_threshold  <- as.numeric(args[5])
+lfc_threshold   <- as.numeric(args[6])
+heatmap_genes   <- as.integer(args[7])
+volcano_labels  <- as.integer(args[8])
+outdir          <- args[9]
 
 dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 
@@ -61,8 +65,8 @@ res_volc <- res_volc |>
         # Jitter points on the ceiling to prevent overlap
         log_p_plot = ifelse(log_p_capped >= y_limit, y_limit + runif(n(), -0.5, 0.5), log_p_capped),
         significance = case_when(
-            padj < 0.05 & log2FoldChange > 1  ~ "Up",
-            padj < 0.05 & log2FoldChange < -1 ~ "Down",
+            padj < padj_threshold & log2FoldChange > lfc_threshold  ~ "Up",
+            padj < padj_threshold & log2FoldChange < -lfc_threshold ~ "Down",
             TRUE                              ~ "Not Significant"
         ),
         label = coalesce(gene_name, gene_id_clean)
@@ -72,7 +76,7 @@ res_volc <- res_volc |>
 top_genes <- res_volc |>
     filter(significance != "Not Significant") |>
     arrange(padj) |>
-    slice_head(n = 15)
+    slice_head(n = volcano_labels)
 
 # Create dynamic title based on experimental groups
 conditions <- unique(meta$condition)
@@ -81,8 +85,8 @@ comp_title <- paste(conditions[conditions != ref_level], "vs", ref_level)
 p_volcano <- ggplot(res_volc, aes(x = log2FoldChange, y = log_p_plot, color = significance)) +
     geom_point(alpha = 0.4, size = 1.5) +
     scale_color_manual(values = c("Up" = "#B2182B", "Down" = "#2166AC", "Not Significant" = "#D1D1D1")) +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey30") +
-    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey30") +
+    geom_hline(yintercept = -log10(padj_threshold), linetype = "dashed", color = "grey30") +
+    geom_vline(xintercept = c(-lfc_threshold, lfc_threshold), linetype = "dashed", color = "grey30") +
     geom_label_repel(
         data = top_genes, aes(label = label),
         size = 3, fontface = "bold", fill = alpha("white", 0.9),
@@ -107,13 +111,19 @@ message("Generating PCA plot...")
 pca <- plotPCA(vst_obj, intgroup = "condition") +
     geom_point(size = 5) +
     scale_color_manual(values = colors_tc) +
-    geom_text_repel(aes(label = name), size = 3, fontface = "bold", show.legend = FALSE) +
+    geom_text_repel(aes(label = name), size = 3, fontface = "bold",
+        show.legend = FALSE,
+        box.padding = 1.5,
+        point.padding = 0.5,
+        force = 20
+        ) +
     theme_bw() +
     labs(title = "Sample Clustering (PCA)", color = "condition") +
     theme(
         plot.title = element_text(hjust = 0.5, face = "bold"),
         axis.title = element_text(size = 12),
-        axis.text = element_text(size = 10)
+        axis.text = element_text(size = 10),
+        aspect.ratio = 0.8
     )
 
 ggsave(file.path(outdir, "pca_plot.pdf"), plot = pca, width = 8, height = 7)
@@ -125,7 +135,7 @@ message("Generating Heatmap...")
 top_heatmap_ids <- res |>
     filter(!is.na(padj)) |>
     arrange(padj) |>
-    slice_head(n = 40) |>
+    slice_head(n = heatmap_genes) |>
     pull(gene_id_clean)
 
 heatmap_data <- vst_matrix[rownames(vst_matrix) %in% top_heatmap_ids, , drop = FALSE]
@@ -150,7 +160,7 @@ if (nrow(heatmap_data) > 5) {
         annotation_colors         = list(Group = colors_tc),
         scale                     = "row", # Row-wise Z-score scaling
         clustering_distance_rows  = "correlation",
-        main                      = "Top 40 Differentially Expressed Genes",
+        main                      = sprintf("Top %d Differentially Expressed Genes", heatmap_genes),
         color                     = colorRampPalette(c("#313695", "white", "#A50026"))(100),
         fontsize_row              = 8,
         fontsize_col              = 10,

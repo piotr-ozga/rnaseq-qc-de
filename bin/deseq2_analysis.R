@@ -13,8 +13,10 @@ suppressPackageStartupMessages({
 args            <- commandArgs(trailingOnly = TRUE)
 salmon_dir      <- args[1]
 samplesheet     <- args[2]
-outdir          <- args[3]
-reference_level <- args[4]
+reference_level <- args[3]
+lfc_threshold   <- as.numeric(args[4])
+padj_threshold  <- as.numeric(args[5])
+outdir          <- args[6]
 
 dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 
@@ -59,27 +61,25 @@ dds <- DESeq(dds)
 
 # --- Exporting Results ---
 res <- results(dds)
+message("Shrinking LFC estimates...")
+message("Using coefficient: ", resultsNames(dds)[2])
+res <- lfcShrink(dds, coef = resultsNames(dds)[2], type = "normal")
 
 results_df <- as.data.frame(res) |>
     rownames_to_column("gene_id") |>
     arrange(padj)
-
 write_tsv(results_df, file.path(outdir, "results.tsv"))
 
-# Use min of 1000 or total genes for VST nsub to handle small test datasets
 vst_nsub <- min(1000, nrow(dds))
 vst_vals <- vst(dds, blind = FALSE, nsub = vst_nsub)
 
-# Export VST normalized counts for PCA and Heatmap
-vst_df <- as.data.frame(assay(vst_vals)) |> tibble::rownames_to_column("gene_id")
-write_tsv(vst_df, file.path(outdir, "vst_counts.tsv"))
-
-# Save RDS for reporting
 saveRDS(dds, file.path(outdir, "dds.rds"))
 saveRDS(vst_vals, file.path(outdir, "vst.rds"))
 
-message(sprintf("Found %d significant DEGs (padj < 0.05).",
-                sum(results_df$padj < 0.05, na.rm = TRUE)
+message(sprintf("Found %d significant DEGs (padj < %.2f, |LFC| > %.1f).",
+                sum(results_df$padj < padj_threshold & abs(results_df$log2FoldChange) > lfc_threshold, na.rm = TRUE),
+                padj_threshold,
+                lfc_threshold
 ))
 
 message("Differential expression analysis finished.")

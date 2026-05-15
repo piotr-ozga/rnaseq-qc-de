@@ -63,7 +63,11 @@ workflow {
             .collect(),
         file(params.samplesheet),
         params.ref_level,
-        file(params.gtf)
+        file(params.gtf),
+        params.lfc_threshold,
+        params.padj_threshold,
+        params.heatmap_genes,
+        params.volcano_labels
     )
 
     REPORTING()

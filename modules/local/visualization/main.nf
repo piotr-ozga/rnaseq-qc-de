@@ -12,6 +12,10 @@ process VISUALIZE_DEA {
     path vst_rds
     path samplesheet
     val ref_level
+    val lfc_threshold
+    val padj_threshold
+    val heatmap_genes
+    val volcano_labels
 
     output:
     path "plots/*.pdf",     emit: plots
@@ -29,6 +33,10 @@ process VISUALIZE_DEA {
         ${vst_rds} \\
         ${samplesheet} \\
         ${ref_level} \\
+        ${lfc_threshold} \\
+        ${padj_threshold} \\
+        ${heatmap_genes} \\
+        ${volcano_labels} \\
         plots
     """
 }

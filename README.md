@@ -33,14 +33,14 @@ Builds a decoy-aware `Salmon` index from the reference genome and transcriptome 
 
 A dedicated subworkflow that chains three processes:
 
-- **`DESEQ2_ANALYSIS`**: Imports gene-level counts from all Salmon output directories using `tximport`, constructs a `DESeqDataSet`, applies a count filter (≥ 10 counts in ≥50% of samples), and runs `DESeq2`. Exports raw results (`results.tsv`), VST-normalized counts (`vst_counts.tsv`), and serialized R objects (`dds.rds`, `vst.rds`) for downstream use.
+- **`DESEQ2_ANALYSIS`**: Imports gene-level counts from all Salmon output directories using `tximport`, constructs a `DESeqDataSet`, applies a count filter (≥ 10 counts in ≥50% of samples), and runs `DESeq2`. LFC estimates are shrunk using `lfcShrink()` with `type = "normal"` to reduce noise from low-count genes. Exports raw results (`results.tsv`), and serialized R objects (`dds.rds`, `vst.rds`) for downstream use.
 
 - **`ANNOTATE_RESULTS`**: Parses the provided GTF file with `rtracklayer` (loading only `gene`-type features and minimal set of columns to reduce memory usage). Strips Ensembl version suffixes from gene IDs, normalises the biotype column across GTF sources (Ensembl `gene_biotype` vs. GENCODE `gene_type`), and performs a left join onto the DESeq2 results table. Outputs an annotated TSV and a plain-text summary with annotation rate and biotype counts. Warns if fewer than 50% of genes are matched, which typically indicates a GTF/genome build mismatch.
 
 - **`VISUALIZE_DEA`**: Produces three PDF figures using `ggplot2`, `ggrepel`, `DESeq2` and `pheatmap`:
-  - **Volcano plot**: colour-coded by significance (padj < 0.05, |log₂FC| > 1), with the top 15 significant genes labelled; Y-axis is capped at the 99.5th percentile to prevent extreme p-values from compressing the plot.
+  - **Volcano plot**: colour-coded by significance (padj < `--padj_threshold`, |log₂FC| > `--lfc_threshold`), with the top `--volcano_labels` significant genes labelled; Y-axis is capped at the 99.5th percentile to prevent extreme p-values from compressing the plot.
   - **PCA plot**: sample-level clustering using VST counts from `DESeq2::plotPCA`.
-  - **Heatmap**: row-wise Z-score scaled expression of the top 40 most significant genes, with hierarchical clustering by correlation distance and sample group annotations.
+  - **Heatmap**: row-wise Z-score scaled expression of the top `--heatmap_genes` most significant genes, with hierarchical clustering by correlation distance and sample group annotations.
 
 ### `REPORTING` - MultiQC Aggregation
 
@@ -90,6 +90,12 @@ nextflow run main.nf \
 * `--gtf`: Path to the annotation GTF.
 * `--ref_level`: The baseline condition for DESeq2 (e.g. `control`).
 
+**Optional Parameters**
+* `--lfc_threshold`: Log2 fold change threshold (default: 1.0) .
+* `--padj_threshold`: Adjusted p-value threshold (default: 0.05).
+* `--heatmap_genes`: Number of top genes shown on heatmap (default: 40).
+* `--volcano_labels`: Number of gene labels on volcano plot (default: 15)
+
 **Profiles:**
 Use `-profile docker`, `-profile singularity`, or `-profile conda`.
 
@@ -110,7 +116,7 @@ results/
 │   ├── index/              # Salmon index
 │   └── <sample>/           # Per-sample quant.sf and quant.genes.sf
 ├── dea/
-│   ├── deseq2/             # results.tsv, vst_counts.tsv, dds.rds, vst.rds
+│   ├── deseq2/             # results.tsv, dds.rds, vst.rds
 │   ├── annotation/         # results_annotated.tsv, annotation_summary.txt
 │   └── visualization/      # volcano_plot.pdf, pca_plot.pdf, heatmap.pdf
 ├── reports/
@@ -136,4 +142,4 @@ The core data flow, architecture, and logic of this pipeline were designed and i
 * Debugging errors and resolving Nextflow/Groovy syntax issues.
 * Organizing and formatting Git commit messages (using AI to structure history based on provided skeletons).
 * Suggesting code improvements, R plotting adjustments, and general syntax extensions.
-* Assistance in creating README.md
+* Assistance in creating README.md.
