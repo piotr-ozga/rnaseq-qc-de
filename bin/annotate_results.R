@@ -85,7 +85,9 @@ annotated_df <- results_df |>
     relocate(
         gene_id,
         any_of(c("gene_name", "gene_biotype", "chromosome", "start", "end", "strand")),
-        baseMean, log2FoldChange, lfcSE, stat, pvalue, padj
+        baseMean, log2FoldChange, lfcSE,
+        any_of(c("stat")),
+        pvalue, padj
     )
 
 # Use chromosome presence as the true "was found in GTF" signal since annotation rate 

@@ -4,8 +4,8 @@ process DESEQ2_ANALYSIS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/bioconductor-deseq2_bioconductor-tximport_r-base_r-dplyr_pruned:2e8147b24a0a2537' :
-        'community.wave.seqera.io/library/bioconductor-deseq2_bioconductor-tximport_r-base_r-dplyr_pruned:3aca25f1b464c8f1' }"
+        'oras://community.wave.seqera.io/library/bioconductor-apeglm_bioconductor-deseq2_bioconductor-tximport_r-base_pruned:1fe08fd2258df7cc' :
+        'community.wave.seqera.io/library/bioconductor-apeglm_bioconductor-deseq2_bioconductor-tximport_r-base_pruned:84ffa34a46d6e468' }"
 
     input:
     path "inputs/*"
@@ -24,7 +24,8 @@ process DESEQ2_ANALYSIS {
     tuple val("${task.process}"), val('readr'), eval("Rscript -e 'cat(as.character(packageVersion(\"readr\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),       emit: v_readr,    topic: versions
     tuple val("${task.process}"), val('dplyr'), eval("Rscript -e 'cat(as.character(packageVersion(\"dplyr\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),       emit: v_dplyr,    topic: versions
     tuple val("${task.process}"), val('tibble'), eval("Rscript -e 'cat(as.character(packageVersion(\"tibble\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),     emit: v_tibble,   topic: versions
-    
+    tuple val("${task.process}"), val('apeglm'), eval("Rscript -e 'cat(as.character(packageVersion(\"apeglm\")))' | grep -Eo \"[0-9]+(\\.[0-9]+)+\""),     emit: v_apeglm,   topic: versions
+
     script:
     """
     deseq2_analysis.R \\

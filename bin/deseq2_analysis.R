@@ -7,6 +7,7 @@ suppressPackageStartupMessages({
     library(readr)
     library(dplyr)
     library(tibble)
+    library(apeglm)
 })
 
 # --- Argument Handling ---
@@ -60,10 +61,9 @@ message(sprintf("Retained %d genes after filtering.", sum(keep)))
 dds <- DESeq(dds)
 
 # --- Exporting Results ---
-res <- results(dds)
 message("Shrinking LFC estimates...")
 message("Using coefficient: ", resultsNames(dds)[2])
-res <- lfcShrink(dds, coef = resultsNames(dds)[2], type = "normal")
+res <- lfcShrink(dds, coef = resultsNames(dds)[2], type = "apeglm")
 
 results_df <- as.data.frame(res) |>
     rownames_to_column("gene_id") |>
