@@ -51,9 +51,7 @@ dds <- DESeqDataSetFromTximport(
     design = ~ condition
 )
 
-# Filtering: keep genes with total count >= 10 in at least 50% of samples
-# Genes expressed only in one group (zero in others) are retained,
-# while globally lowly expressed genes are removed to improve dispersion
+# Filtering: keep genes with at least 10 counts in at least 50% of samples
 keep <- rowSums(counts(dds) >= 10) >= (ncol(dds) / 2)
 dds <- dds[keep, ]
 message(sprintf("Retained %d genes after filtering.", sum(keep)))

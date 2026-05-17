@@ -61,7 +61,6 @@ gtf_df <- gtf_df |>
     mutate(
         # Strip Ensembl version suffix if present (e.g. ENSG00000001.5 -> ENSG00000001)
         gene_id = sub("\\.\\d+$", "", gene_id),
-        # If gene_name is NA, use gene_id so the output column is never empty
         gene_name = coalesce(gene_name, gene_id),
         # Flag primary chromosomes to exclude scaffolds and PAR-region duplicates in next step
         # that usually contains underscore or dot in the name
@@ -73,7 +72,7 @@ gtf_df <- gtf_df |>
 
 message(sprintf("GTF parsed: %d gene records loaded.", nrow(gtf_df)))
 
-# --- Strip version suffix from results gene_id as well ---
+# Strip version suffix from results gene_id as well
 results_df <- results_df |>
     mutate(gene_id = sub("\\.\\d+$", "", gene_id))
 
@@ -98,7 +97,6 @@ message(sprintf(
     n_annotated, n_before, 100 * n_annotated / n_before
 ))
 
-# Warn if annotation rate is poor
 if (n_annotated / n_before < 0.5) {
     warning(
         "Less than 50% of genes were annotated.",

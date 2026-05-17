@@ -34,10 +34,8 @@ res      <- read_tsv(annotated_tsv, show_col_types = FALSE)
 vst_obj  <- read_rds(vst_rds)
 meta     <- read_csv(samplesheet, show_col_types = FALSE)
 
-# Extract matrix from DESeqTransform object
 vst_matrix <- assay(vst_obj)
 
-# Set colors for control and treated sample
 colors_tc <- setNames(
     c("#4DAF4A", "#E41A1C"), 
     c(ref_level, unique(meta$condition)[unique(meta$condition) != ref_level])
@@ -53,7 +51,8 @@ message("Generating Volcano Plot...")
 
 # Handle padj = 0 by replacing with very small value for -log10 calculation
 res_volc <- res |>
-    mutate(log_p = -log10(ifelse(padj == 0 | is.na(padj), 1e-300, padj)))
+    filter(!is.na(padj)) |>
+    mutate(log_p = -log10(ifelse(padj == 0, 1e-300, padj)))
 
 # Determine Y-axis ceiling based on data density (99.5th percentile)
 upper_limit <- quantile(res_volc$log_p[res_volc$log_p < 300], 0.995, na.rm = TRUE)
@@ -72,7 +71,6 @@ res_volc <- res_volc |>
         label = coalesce(gene_name, gene_id_clean)
     )
 
-# Select top 15 most significant genes for annotation
 top_genes <- res_volc |>
     filter(significance != "Not Significant") |>
     arrange(padj) |>
@@ -131,7 +129,6 @@ ggsave(file.path(outdir, "pca_plot.pdf"), plot = pca, width = 8, height = 7)
 # --- Annotated Heatmap ---
 message("Generating Heatmap...")
 
-# Extract IDs for top 40 genes
 top_heatmap_ids <- res |>
     filter(!is.na(padj)) |>
     arrange(padj) |>
@@ -145,20 +142,17 @@ if (nrow(heatmap_data) > 5) {
     filter(gene_id_clean %in% rownames(heatmap_data)) |>
     distinct(gene_id_clean, .keep_all = TRUE)
 
-    # Sort and rename rows
     heatmap_data <- heatmap_data[match(id_to_name$gene_id_clean, rownames(heatmap_data)), ]
     rownames(heatmap_data) <- coalesce(id_to_name$gene_name, id_to_name$gene_id_clean)
 
-    # Metadata for legends
     ann_color <- data.frame(Group = meta$condition)
     rownames(ann_color) <- meta$sample
 
     heatmap <- pheatmap(
         heatmap_data,
         annotation_col            = ann_color,
-        # annotation_colors must be a list
         annotation_colors         = list(Group = colors_tc),
-        scale                     = "row", # Row-wise Z-score scaling
+        scale                     = "row",
         clustering_distance_rows  = "correlation",
         main                      = sprintf("Top %d Differentially Expressed Genes", heatmap_genes),
         color                     = colorRampPalette(c("#313695", "white", "#A50026"))(100),
