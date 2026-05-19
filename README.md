@@ -33,7 +33,7 @@ Builds a decoy-aware `Salmon` index from the reference genome and transcriptome 
 
 A dedicated subworkflow that chains three processes:
 
-- **`DESEQ2_ANALYSIS`**: Imports gene-level counts from all Salmon output directories using `tximport`, constructs a `DESeqDataSet`, applies a count filter (≥ 10 counts in ≥50% of samples), and runs `DESeq2`. LFC estimates are shrunk using `lfcShrink()` with `type = "normal"` to reduce noise from low-count genes. Exports raw results (`results.tsv`), and serialized R objects (`dds.rds`, `vst.rds`) for downstream use.
+- **`DESEQ2_ANALYSIS`**: Imports gene-level counts from all Salmon output directories using `tximport`, constructs a `DESeqDataSet`, applies a count filter (≥ 10 counts in ≥50% of samples), and runs `DESeq2`. LFC estimates are shrunk using `lfcShrink()` with `type = "apeglm"` to reduce noise from low-count genes. Exports raw results (`results.tsv`), and serialized R objects (`dds.rds`, `vst.rds`) for downstream use.
 
 - **`ANNOTATE_RESULTS`**: Parses the provided GTF file with `rtracklayer` (loading only `gene`-type features and minimal set of columns to reduce memory usage). Strips Ensembl version suffixes from gene IDs, normalises the biotype column across GTF sources (Ensembl `gene_biotype` vs. GENCODE `gene_type`), and performs a left join onto the DESeq2 results table. Outputs an annotated TSV and a plain-text summary with annotation rate and biotype counts. Warns if fewer than 50% of genes are matched, which typically indicates a GTF/genome build mismatch.
 
