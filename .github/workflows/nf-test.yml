@@ -3,8 +3,16 @@ name: Run nf-test
 on:
   push:
     branches: [dev, main]
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'LICENSE'
   pull_request:
     branches: [dev, main]
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'LICENSE'
   workflow_dispatch:
     
 # Management of concurrent runs
